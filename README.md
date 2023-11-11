@@ -29,12 +29,13 @@ import ScrollAnime from 'scrollanime'
 import ScrollAnime from 'scrollanime/dist/scrollanime.es';
 ```
 
-- ### Pass two parameters: 
+- ### Create an instance. 
   - container: Scroller HTML element
   - animations: Array of [animation object](#animation)
 
 ```js
 let container = document.getElementById('container');
+let boxes = document.querySelectorAll('.box')
 let animations = [
         {
             targets: boxes[0],
@@ -55,7 +56,9 @@ let animations = [
                 end: 'bottom center',
                 lerp: true,
             }
-        }];
+    }];
+
+new ScrollAnime(container,animations);
 ```
 - ### Animation
 Animation object has the following structure.
