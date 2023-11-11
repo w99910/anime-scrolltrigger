@@ -19,7 +19,7 @@
 
         let boxes = container.querySelectorAll('.box');
         
-        let triggers = [
+        let animations = [
         {
             targets: boxes[0],
             translateX: 100,
@@ -65,9 +65,7 @@
         }
     ]
 
-    console.log(triggers)
-
-        new ScrollAnime(container, triggers);
+        new ScrollAnime(container, animations);
     </script>
 </body>
 </html>
