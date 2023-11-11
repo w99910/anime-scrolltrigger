@@ -141,3 +141,8 @@ Example scroll trigger object is
 ## Examples
 
 - [simple-boxes](./examples/simple-boxes.html)
+
+## TO-DO
+
+- configurable marker colors 
+- pin option
