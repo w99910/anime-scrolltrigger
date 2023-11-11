@@ -1,0 +1,20 @@
+{
+  "name": "scrollanime",
+  "version": "0.0.1",
+  "description": "Animate on scroll",
+  "main": "index.js",
+  "keywords": ["scroll trigger","anime on scroll","animate","scrollanime"],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "author": "Thomas Brillion",
+  "license": "MIT",
+  "dependencies": {
+    "animejs": "^3.2.1"
+  },
+  "devDependencies": {
+    "path": "^0.12.7",
+    "vite": "^4.5.0"
+  }
+}

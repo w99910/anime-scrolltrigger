@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body style="overflow: hidden;">
+    <div id="container" style="width: 100vw; flex-wrap: nowrap; height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 4rem 0rem; box-sizing: border-box; overflow:auto;">
+        <div class="box" style="width: 50vw; border: 1px solid #333; flex-shrink: 0; margin: 4rem 0rem; height: 20rem; display: flex; justify-content: center; align-items: center;">Box 1</div>
+        <div class="box" style="width: 50vw; border: 1px solid #333; flex-shrink: 0; margin: 4rem 0rem; height: 20rem; display: flex; justify-content: center; align-items: center;">Box 2</div>
+        <div class="box" style="width: 50vw; border: 1px solid #333; flex-shrink: 0; margin: 4rem 0rem; height: 20rem; display: flex; justify-content: center; align-items: center;">Box 3</div>
+        <div class="box" style="width: 50vw; border: 1px solid #333; flex-shrink: 0; margin: 4rem 0rem; height: 20rem; display: flex; justify-content: center; align-items: center;">Box 4</div>
+    </div>
+    <script type="module">
+        import ScrollAnime from '../dist/scrollanime.es.js'
+        
+        let container = document.getElementById('container');
+
+        let boxes = container.querySelectorAll('.box');
+        
+        let triggers = [
+        {
+            targets: boxes[0],
+            translateX: 100,
+            easing: 'linear',
+            scrollTrigger: {
+                trigger: boxes[0],
+                start: 'top 3%',
+                end: 'bottom 30%',
+            }
+        },
+        {
+            targets: boxes[1],
+            backgroundColor: '#a993ff',
+            easing: 'linear',
+            scrollTrigger: {
+                trigger: boxes[1],
+                start: 'top 40%',
+                end: 'bottom center',
+                lerp: true,
+            }
+        },
+        {
+            targets: boxes[2],
+            backgroundColor: '#02cdf1',
+            easing: 'linear',
+            scrollTrigger: {
+                trigger: boxes[2],
+                start: 'top 60%',
+                end: 'bottom 80%',
+                lerp: true,
+            }
+        },
+        {
+            targets: boxes[3],
+            translateY: -100,
+            easing: 'linear',
+            scrollTrigger: {
+                trigger: boxes[3],
+                lerp: true,
+                start: 'top 60%',
+                end: 'bottom 80%',
+            }
+        }
+    ]
+
+    console.log(triggers)
+
+        new ScrollAnime(container, triggers);
+    </script>
+</body>
+</html>
