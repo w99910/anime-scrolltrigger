@@ -129,11 +129,11 @@ Example scroll trigger object is
     lerp: Boolean, // same as `scrub` property in ScrollTrigger.
     debug: Boolean, // indicate to show start offset markers and end offset markers. 
     events: { // Scroll Trigger Events
-        onEnter: Function(), 
-        onLeave: Function()
-        onEnterBack: Function(),
-        onLeaveBack: Function(),
-        onUpdate: Function(),
+        onEnter: Function(trigger,progress), 
+        onLeave: Function(trigger,progress)
+        onEnterBack: Function(trigger,progress),
+        onLeaveBack: Function(trigger,progress),
+        onUpdate: Function(anime),
     }
 }
 ```
