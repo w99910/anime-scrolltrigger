@@ -3,7 +3,7 @@ import path from "path";
 
 export default defineConfig({
   server: {
-    open: "./dev.html",
+    open: "./dev/dev.html",
   },
   build: {
     lib: {

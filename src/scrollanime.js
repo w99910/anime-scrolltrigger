@@ -1,7 +1,7 @@
 import anime from "animejs";
 
 export default class ScrollAnime {
-    getScrollOffset(position) {
+    getScrollOffsetPercentage(position) {
         if (position.includes('%')) return parseInt(position.substring(0, position.length - 1)) / 100;
         if (parseInt(position)) return parseInt(position);
         switch (position) {
@@ -27,6 +27,17 @@ export default class ScrollAnime {
         return marker;
     }
 
+    createMarkerContainer(){
+        this.element.style.position = 'relative';
+        this.markerContainer = document.createElement('div');
+        this.markerContainer.style.overflow = 'hidden'
+        this.markerContainer.style.height = this.element.scrollHeight + 'px';
+        this.markerContainer.style.width = this.element.scrollWidth + 'px';
+        this.markerContainer.style.position = 'absolute';
+        this.element.prepend(this.markerContainer)
+        return this.markerContainer;
+    }
+
     lerp(start, end, current) {
         let distance = Math.abs(end - start);
         let currentDist = Math.max(end - current, 0);
@@ -34,6 +45,7 @@ export default class ScrollAnime {
     }
 
     constructor(element, triggers) {
+        this.element = element;
         triggers.forEach((trigger) => {
             trigger.animations = {};
             trigger.hasTriggered = false;
@@ -97,7 +109,7 @@ export default class ScrollAnime {
             }
             trigger._onLeaveBack = (trigger, progress) => {
                 if (trigger.scrollTrigger.onLeaveBack) trigger.scrollTrigger.onLeaveBack(trigger, progress);
-                triggerAction(trigger.scrollTrigger.actions[3])
+                if(!trigger.scrollTrigger.lerp)triggerAction(trigger.scrollTrigger.actions[3])
             }
 
             let triggerRect = trigger.scrollTrigger.trigger.getBoundingClientRect();
@@ -107,7 +119,7 @@ export default class ScrollAnime {
             if (start.length < 2) {
                 throw new Error('Start must be in the format of "triggerOffset scrollOffset"')
             }
-            trigger.startTriggerOffset = triggerRect.top + triggerRect.height * this.getScrollOffset(start[0]);
+            trigger.startTriggerOffset = triggerRect.top + triggerRect.height * this.getScrollOffsetPercentage(start[0]);
             trigger.startScrollPosition = start[1];
             let end = trigger.scrollTrigger.end ?? 'bottom center';
             end = end.split(' ');
@@ -115,51 +127,52 @@ export default class ScrollAnime {
                 throw new Error('end must be in the format of "triggerOffset scrollOffset"')
             }
             trigger.endScrollPosition = end[1];
-            trigger.endTriggerOffset = triggerRect.top + triggerRect.height * this.getScrollOffset(end[0]);
+            trigger.endTriggerOffset = triggerRect.top + triggerRect.height * this.getScrollOffsetPercentage(end[0]);
 
-            trigger.animationTriggerStartOffset = trigger.startTriggerOffset - element.clientHeight * this.getScrollOffset(trigger.startScrollPosition);
-            trigger.animationTriggerEndOffset = trigger.endTriggerOffset - element.clientHeight * this.getScrollOffset(trigger.endScrollPosition);
+            trigger.animationTriggerStartOffset = trigger.startTriggerOffset - element.clientHeight * this.getScrollOffsetPercentage(trigger.startScrollPosition);
+            trigger.animationTriggerEndOffset = trigger.endTriggerOffset - element.clientHeight * this.getScrollOffsetPercentage(trigger.endScrollPosition);
 
             // debug offsets
             if (trigger.scrollTrigger.debug) {
-                element.style.position = 'relative';
-                trigger.scrollTrigger.startTriggerOffsetMarker = this.createMarker('5px', '20px', '#ff4949', trigger.startTriggerOffset + 'px');
-                trigger.scrollTrigger.endTriggerOffsetMarker = this.createMarker('5px', '20px', '#49deff', trigger.endTriggerOffset + 'px');
-                trigger.scrollTrigger.trigger.appendChild(trigger.scrollTrigger.startTriggerOffsetMarker)
-                trigger.scrollTrigger.trigger.appendChild(trigger.scrollTrigger.endTriggerOffsetMarker)
-                trigger.scrollTrigger.startScrollerOffsetMarker = this.createMarker('5px', '24px', '#ff4949', element.clientHeight * this.getScrollOffset(trigger.startScrollPosition) + 'px', '0px', 'absolute');
-                trigger.scrollTrigger.endScrollerOffsetMarker = this.createMarker('5px', '24px', '#49deff', element.clientHeight * this.getScrollOffset(trigger.endScrollPosition) + 'px', '0px', 'absolute');
-                trigger.scrollTrigger.trigger.appendChild(trigger.scrollTrigger.startScrollerOffsetMarker)
-                trigger.scrollTrigger.trigger.appendChild(trigger.scrollTrigger.endScrollerOffsetMarker)
+                let markerContainer = this.markerContainer ?? this.createMarkerContainer();
+                trigger.scrollTrigger.startTriggerOffsetMarker = this.createMarker('5px', '20px', trigger.scrollTrigger.debug.startTriggerOffsetMarker?? '#ff4949', trigger.startTriggerOffset + 'px' ,triggerRect.right + 'px');
+                trigger.scrollTrigger.endTriggerOffsetMarker = this.createMarker('5px', '20px', trigger.scrollTrigger.debug.endTriggerOffsetMarker?? '#49deff', trigger.endTriggerOffset + 'px',triggerRect.right + 'px');
+                markerContainer.appendChild(trigger.scrollTrigger.startTriggerOffsetMarker)
+                markerContainer.appendChild(trigger.scrollTrigger.endTriggerOffsetMarker)
+                trigger.scrollTrigger.startScrollerOffsetMarker = this.createMarker('5px', '24px', trigger.scrollTrigger.debug.startScrollerOffsetMarker??'#ff4949', element.clientHeight * this.getScrollOffsetPercentage(trigger.startScrollPosition) + 'px', '0px', 'absolute');
+                trigger.scrollTrigger.endScrollerOffsetMarker = this.createMarker('5px', '24px', trigger.scrollTrigger.debug.endScrollerOffsetMarker??'#49deff', element.clientHeight * this.getScrollOffsetPercentage(trigger.endScrollPosition) + 'px', '0px', 'absolute');
+                markerContainer.appendChild(trigger.scrollTrigger.startScrollerOffsetMarker)
+                markerContainer.appendChild(trigger.scrollTrigger.endScrollerOffsetMarker)
+
             }
         })
+        console.log(triggers)
         let currentScroll = 0;
         let isVerticalScrolling = false;
         element.addEventListener('scroll', (e) => {
             isVerticalScrolling = element.scrollTop > currentScroll;
             currentScroll = element.scrollTop;
             triggers.forEach((trigger) => {
-                let startScrollerOffset = element.scrollTop + element.clientHeight * this.getScrollOffset(trigger.startScrollPosition);
-                let endScrollerOffset = element.scrollTop + element.clientHeight * this.getScrollOffset(trigger.endScrollPosition);
+                let startScrollerOffset = element.scrollTop + element.clientHeight * this.getScrollOffsetPercentage(trigger.startScrollPosition);
+                let endScrollerOffset = element.scrollTop + element.clientHeight * this.getScrollOffsetPercentage(trigger.endScrollPosition);
                 if (trigger.scrollTrigger.debug) {
                     trigger.scrollTrigger.startScrollerOffsetMarker.style.top = startScrollerOffset + 'px';
                     trigger.scrollTrigger.endScrollerOffsetMarker.style.top = endScrollerOffset + 'px';
                 }
-                // console.log([startScrollerOffset, endScrollerOffset], [trigger.startTriggerOffset, trigger.endTriggerOffset], trigger.isActive)
-                if (startScrollerOffset >= trigger.startTriggerOffset && (trigger.scrollTrigger.lerp || !trigger.isActive) && endScrollerOffset <= trigger.endTriggerOffset) {
+                if (element.scrollTop >= trigger.animationTriggerStartOffset && (trigger.scrollTrigger.lerp || !trigger.isActive) && element.scrollTop <= trigger.animationTriggerEndOffset) {
                     let progress = this.lerp(trigger.animationTriggerStartOffset, trigger.animationTriggerEndOffset, element.scrollTop);
                     if (progress > 0.99 || progress < 0.09) progress = Math.round(progress);
                     isVerticalScrolling ? trigger._onEnter(trigger, progress) : trigger._onEnterBack(trigger, progress);
                     trigger.isActive = true
                     return;
                 }
-                if (endScrollerOffset >= trigger.endTriggerOffset && trigger.isActive) {
+                if (element.scrollTop >= trigger.animationTriggerEndOffset && trigger.isActive) {
                     trigger._onLeave(trigger);
                     trigger.isActive = false;
                     return;
                 }
 
-                if (startScrollerOffset < trigger.startTriggerOffset && trigger.isActive) {
+                if (element.scrollTop < trigger.animationTriggerStartOffset && trigger.isActive) {
                     trigger.isActive = false;
                     trigger._onLeaveBack(trigger)
                 }
