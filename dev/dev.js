@@ -1,4 +1,4 @@
-import ScrollAnime from "../src/scrollanime";
+import AnimeScrollTrigger from "../src/anime-scrolltrigger";
 
 let container = document.getElementById('container');
 
@@ -57,4 +57,4 @@ let animations = [
     }
 ]
 
-new ScrollAnime(container, animations);
+new AnimeScrollTrigger(container, animations);

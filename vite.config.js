@@ -8,9 +8,9 @@ export default defineConfig({
   build: {
     lib: {
       entry: path.resolve(__dirname, "./index.js"),
-      name: "ScrollAnime",
+      name: "Anime-ScrollTrigger",
       formats: ["es","cjs"],
-      fileName: (format) => `scrollanime.${format}.js`,
+      fileName: (format) => `anime-scrolltrigger.${format}.js`,
     },
     outDir: "./dist/",
     emptyOutDir: true,

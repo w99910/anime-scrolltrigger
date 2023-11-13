@@ -1,12 +1,12 @@
-# ScrollAnime
+# Anime-ScrollTrigger
 
-![ScrollAnime](cover.jpg)
+![Anime-ScrollTrigger](cover.jpg)
 
 > Warning: Currently I am busy with my projects but I will try to release first beta version with complete documentation as soon as possible. 
 
 ## Introduction
 
-`ScrollAnime` is a library which is aimed to animate on scroll just like [`ScrollTrigger`](https://gsap.com/docs/v3/Plugins/ScrollTrigger/). Some name conventions would be different but the logic is pretty similar. 
+`Anime-ScrollTrigger` is a library which is aimed to animate on scroll just like [`ScrollTrigger`](https://gsap.com/docs/v3/Plugins/ScrollTrigger/). Some name conventions would be different but the logic is pretty similar. 
 
 I strongly recommend you to use that library because it is awesome and maintained. 
 
@@ -42,16 +42,16 @@ Trigger will end when `endTriggerOffset` meets `endScrollerOffset`.
 ## Installation
 
 ```bash
-npm install https://github.com/w99910/scrollanime.git
+npm install anime-scrolltrigger
 ```
 
 ## Usages
 
-### Import `ScrollAnime` 
+### Import `AnimeScrolltrigger` 
 ```js
-import ScrollAnime from 'scrollanime' 
+import AnimeScrollTrigger from 'anime-scrolltrigger' 
 // or 
-import ScrollAnime from 'scrollanime/dist/scrollanime.es';
+import AnimeScrollTrigger from 'anime-scrolltrigger/dist/scrollanime.es';
 ```
 
 ### Create an instance. 
@@ -83,7 +83,7 @@ let animations = [
             }
     }];
 
-new ScrollAnime(container,animations);
+new AnimeScrollTrigger(container,animations);
 ```
 ### Animation
 Animation object has the following structure.

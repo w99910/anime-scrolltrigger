@@ -1,9 +1,9 @@
 {
-  "name": "scrollanime",
+  "name": "anime-scrolltrigger",
   "version": "0.0.1",
   "description": "Animate on scroll",
   "main": "index.js",
-  "keywords": ["scroll trigger","anime on scroll","animate","scrollanime"],
+  "keywords": ["anime-scrolltrigger","scroll trigger","anime on scroll","animate","scrollanime"],
   "scripts": {
     "dev": "vite",
     "build": "vite build"
@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/w99910/scrollanime"
+    "url": "https://github.com/w99910/anime-scrolltrigger"
   },
   "devDependencies": {
     "path": "^0.12.7",

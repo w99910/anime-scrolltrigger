@@ -1,3 +1,3 @@
-import ScrollAnime from './src/scrollanime';
+import AnimeScrollTrigger from './src/anime-scrolltrigger';
 
-export default ScrollAnime;
+export default AnimeScrollTrigger;

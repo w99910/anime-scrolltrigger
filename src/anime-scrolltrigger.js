@@ -1,6 +1,6 @@
 import anime from "animejs";
 
-export default class ScrollAnime {
+export default class AnimeScrollTrigger {
     getScrollOffsetPercentage(position) {
         if (position.includes('%')) return parseInt(position.substring(0, position.length - 1)) / 100;
         if (parseInt(position)) return parseInt(position);
