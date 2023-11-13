@@ -13,6 +13,10 @@
   "dependencies": {
     "animejs": "^3.2.1"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/w99910/scrollanime"
+  },
   "devDependencies": {
     "path": "^0.12.7",
     "vite": "^4.5.0"
