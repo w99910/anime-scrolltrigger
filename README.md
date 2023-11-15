@@ -11,6 +11,8 @@
 - Debugging the offset markers.
 - Calculates offsets using `boundingClientRect` and `scrollTop` instead of using `Intersection Observer`.
 
+Demo codepen: [https://codepen.io/Zaw-Lin-Tun-the-encoder/pen/vYbervK](https://codepen.io/Zaw-Lin-Tun-the-encoder/pen/vYbervK)
+
 ## Introduction
 
 `Anime-ScrollTrigger` is a library which is aimed to animate on scroll just
@@ -48,12 +50,10 @@ For example,
 
    ```js
    ...
-scrollTrigger: {
-    start: 'top bottom',
-        end
-:
-    '10% bottom',
-}
+   scrollTrigger: {
+      start: 'top bottom', 
+      end: '10% bottom',
+   }
    ```
 
 The above values indicate that
@@ -137,16 +137,10 @@ Example Animation Object
 
 ```js
 {
-    targets: boxes[1],
-        backgroundColor
-:
-    '#a993ff',
-        easing
-:
-    'linear',
-        scrollTrigger
-:
-    {
+    targets: boxes[1], 
+    backgroundColor: '#a993ff',
+    easing: 'linear',
+    scrollTrigger: {
     ...
     }
 }
