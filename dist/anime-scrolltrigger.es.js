@@ -948,10 +948,10 @@ class lr {
         let u = this.markerContainer ?? this.createMarkerContainer();
         n.scrollTrigger.startTriggerOffsetMarker = this.createMarker("5px", "20px", n.scrollTrigger.debug.startTriggerOffsetMarker ?? "#ff4949", n.startTriggerOffset + "px", i.right >= r.clientWidth ? r.clientWidth - 20 : i.right + "px"), n.scrollTrigger.endTriggerOffsetMarker = this.createMarker("5px", "20px", n.scrollTrigger.debug.endTriggerOffsetMarker ?? "#49deff", n.endTriggerOffset + "px", i.right >= r.clientWidth ? r.clientWidth - 20 : i.right + "px"), u.appendChild(n.scrollTrigger.startTriggerOffsetMarker), u.appendChild(n.scrollTrigger.endTriggerOffsetMarker), n.scrollTrigger.startScrollerOffsetMarker = this.createMarker("5px", "24px", n.scrollTrigger.debug.startScrollerOffsetMarker ?? "#ff4949", r.clientHeight * this.getScrollOffsetPercentage(n.startScrollPosition) + "px", "0px", "absolute"), n.scrollTrigger.endScrollerOffsetMarker = this.createMarker("5px", "24px", n.scrollTrigger.debug.endScrollerOffsetMarker ?? "#49deff", r.clientHeight * this.getScrollOffsetPercentage(n.endScrollPosition) + "px", "0px", "absolute"), u.appendChild(n.scrollTrigger.startScrollerOffsetMarker), u.appendChild(n.scrollTrigger.endScrollerOffsetMarker);
       }
-      n.scrollTrigger.pin && (n.initialTopOffset = n.startTriggerOffset + i.top);
+      n.scrollTrigger.pin && (n.initialTopOffset = n.startTriggerOffset);
     });
     let o = 0, a = !1;
-    r.addEventListener("scroll", (n) => {
+    this.animations = t, r.addEventListener("scroll", (n) => {
       a = r.scrollTop > o, o = r.scrollTop, t.forEach((s) => {
         let l = r.scrollTop + r.clientHeight * this.getScrollOffsetPercentage(s.startScrollPosition), i = r.scrollTop + r.clientHeight * this.getScrollOffsetPercentage(s.endScrollPosition);
         if (s.scrollTrigger.debug && (s.scrollTrigger.startScrollerOffsetMarker.style.top = l + "px", s.scrollTrigger.endScrollerOffsetMarker.style.top = i + "px"), r.scrollTop >= s.animationTriggerStartOffset && r.scrollTop <= s.animationTriggerEndOffset) {
