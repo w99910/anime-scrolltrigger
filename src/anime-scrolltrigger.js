@@ -79,18 +79,21 @@ export default class AnimeScrollTrigger {
                     trigger.animations[key] = trigger[key]
                 }
             })
-            if (trigger.scrollTrigger.lerp) {
-                trigger.animations.easing = 'linear'
+            if (Object.keys(trigger.animations).length > 0) {
+                if (trigger.scrollTrigger.lerp) {
+                    trigger.animations.easing = 'linear'
+                }
+                let params = {
+                    targets: trigger.targets,
+                    ...trigger.animations,
+                    autoplay: false,
+                };
+                if (trigger.scrollTrigger.onUpdate) {
+                    params.update = trigger.scrollTrigger.onUpdate;
+                }
+                trigger.anime = anime(params)
             }
-            let params = {
-                targets: trigger.targets,
-                ...trigger.animations,
-                autoplay: false,
-            };
-            if (trigger.scrollTrigger.onUpdate) {
-                params.update = trigger.scrollTrigger.onUpdate;
-            }
-            trigger.anime = anime(params)
+
 
             const triggerAction = (action) => {
                 switch (action) {
@@ -115,19 +118,23 @@ export default class AnimeScrollTrigger {
 
             trigger._onEnter = (trigger, progress) => {
                 if (trigger.scrollTrigger.onEnter) trigger.scrollTrigger.onEnter(trigger, progress);
+                if (!trigger.anime) return null;
                 trigger.scrollTrigger.lerp ? trigger.anime.seek(trigger.anime.duration * progress) : triggerAction(trigger.scrollTrigger.actions[0])
             }
             trigger._onLeave = (trigger, progress) => {
                 if (trigger.scrollTrigger.onLeave) trigger.scrollTrigger.onLeave(trigger, progress);
+                if (!trigger.anime) return null;
                 triggerAction(trigger.scrollTrigger.actions[1])
             }
 
             trigger._onEnterBack = (trigger, progress) => {
                 if (trigger.scrollTrigger.onEnterBack) trigger.scrollTrigger.onEnterBack(trigger, progress);
+                if (!trigger.anime) return null;
                 trigger.scrollTrigger.lerp ? trigger.anime.seek(trigger.anime.duration * progress) : triggerAction(trigger.scrollTrigger.actions[2])
             }
             trigger._onLeaveBack = (trigger, progress) => {
                 if (trigger.scrollTrigger.onLeaveBack) trigger.scrollTrigger.onLeaveBack(trigger, progress);
+                if (!trigger.anime) return null;
                 if (!trigger.scrollTrigger.lerp) triggerAction(trigger.scrollTrigger.actions[3])
             }
 

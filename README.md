@@ -5,6 +5,7 @@
 ## Features
 
 - Trigger animation when scroller offset intersects with trigger element.
+- Support Scroll Triggering without the need of using animation ( i.e you can still use scroll trigger when you don't want to animate) 
 - Pinning trigger element
 - Option for [linear interpolation](https://en.wikipedia.org/wiki/Linear_interpolation) of animation based on scroll.
   i.e, trigger animation state based on scroll
@@ -121,8 +122,8 @@ new AnimeScrollTrigger(container, animations);
 
 Animation object has the following structure.
 
-- targets: HTML elements to animate
-- attributes which you want to animate ( same as animejs) - for example
+- targets (optional) : HTML elements to animate
+- attributes (optional) which you want to animate ( same as animejs) - for example
   ```js
   {
     translateX: 100,
@@ -240,7 +241,7 @@ Example scroll trigger object is
   ```js
   container.addEventListener('scroll',()=>console.log('yay scrolling'))
   ```
-
+- The start-intersection-trigger-offset needs to be lower than end-intersection-trigger-point offset. If it is not, animation/ triggering won't work. 
 ## TO-DO
 
 - [x] configurable marker colors
