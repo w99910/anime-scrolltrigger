@@ -221,11 +221,11 @@ Example scroll trigger object is
     actions: 'play none none reverse',
     events:
         { // Scroll Trigger Events
-            onEnter: (trigger, progress) => {},
-            onLeave: (trigger, progress) => {},
-            onEnterBack: (trigger, progress) => {},
-            onLeaveBack: (trigger, progress) => {},
-            onUpdate: (animeInstance) => {},
+            onEnter: (trigger) => {},
+            onLeave: (trigger) => {},
+            onEnterBack: (trigger) => {},
+            onLeaveBack: (trigger) => {},
+            onUpdate: (trigger,progress) => {},
         }
 }
 ```
