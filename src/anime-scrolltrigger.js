@@ -44,16 +44,22 @@ export default class AnimeScrollTrigger {
     lerp(start, end, current) {
         let distance = Math.abs(end - start);
         let currentDist = Math.max(end - current, 0);
-        return 1.0 - Math.min(currentDist / distance, 1);
+        return 1 - Math.min(currentDist / distance, 1);
     }
 
     createPinContainer(triggerElement) {
         // it is important to insert at the same position.
         let pinContainer = document.createElement('div');
         pinContainer.className = 'pin-container';
+        let style = window.getComputedStyle(triggerElement);
+        Object.keys(style).forEach((attr)=>{
+            if(/[^0-9]/i.test(attr)) {
+                pinContainer.style[attr] = style[attr];
+            }
+        })
         pinContainer.style.height = triggerElement.getBoundingClientRect().height + 'px';
         pinContainer.style.width = triggerElement.getBoundingClientRect().width + 'px';
-        pinContainer.style.willChange = 'transform'
+        pinContainer.style.willChange = 'transform';
         if (triggerElement.parentElement.children.length > 1) {
             triggerElement.insertAdjacentElement('beforebegin', pinContainer)
         } else {
@@ -99,9 +105,6 @@ export default class AnimeScrollTrigger {
                     ...trigger.animations,
                     autoplay: false,
                 };
-                if (trigger.scrollTrigger.onUpdate) {
-                    params.update = trigger.scrollTrigger.onUpdate;
-                }
                 trigger.anime = anime(params)
             }
 
@@ -128,25 +131,29 @@ export default class AnimeScrollTrigger {
             }
 
             trigger._onEnter = (trigger, progress) => {
-                if (trigger.scrollTrigger.onEnter) trigger.scrollTrigger.onEnter(trigger, progress);
+                if (trigger.scrollTrigger.onEnter) trigger.scrollTrigger.onEnter(trigger);
+                if(trigger.scrollTrigger.onUpdate) trigger.scrollTrigger.onUpdate(trigger,progress);
                 if (!trigger.anime) return null;
                 trigger.scrollTrigger.lerp ? trigger.anime.seek(trigger.anime.duration * progress) : triggerAction(trigger.scrollTrigger.actions[0])
             }
             trigger._onLeave = (trigger, progress) => {
-                if (trigger.scrollTrigger.onLeave) trigger.scrollTrigger.onLeave(trigger, progress);
+                if (trigger.scrollTrigger.onLeave) trigger.scrollTrigger.onLeave(trigger);
+                if(trigger.scrollTrigger.onUpdate) trigger.scrollTrigger.onUpdate(trigger,1);
                 if (!trigger.anime) return null;
-                triggerAction(trigger.scrollTrigger.actions[1])
+                trigger.scrollTrigger.lerp ? trigger.anime.seek(trigger.anime.duration):  triggerAction(trigger.scrollTrigger.actions[1])
             }
 
             trigger._onEnterBack = (trigger, progress) => {
-                if (trigger.scrollTrigger.onEnterBack) trigger.scrollTrigger.onEnterBack(trigger, progress);
+                if (trigger.scrollTrigger.onEnterBack) trigger.scrollTrigger.onEnterBack(trigger);
+                if(trigger.scrollTrigger.onUpdate) trigger.scrollTrigger.onUpdate(trigger,progress);
                 if (!trigger.anime) return null;
                 trigger.scrollTrigger.lerp ? trigger.anime.seek(trigger.anime.duration * progress) : triggerAction(trigger.scrollTrigger.actions[2])
             }
             trigger._onLeaveBack = (trigger, progress) => {
-                if (trigger.scrollTrigger.onLeaveBack) trigger.scrollTrigger.onLeaveBack(trigger, progress);
+                if (trigger.scrollTrigger.onLeaveBack) trigger.scrollTrigger.onLeaveBack(trigger);
+                if(trigger.scrollTrigger.onUpdate) trigger.scrollTrigger.onUpdate(trigger,0);
                 if (!trigger.anime) return null;
-                if (!trigger.scrollTrigger.lerp) triggerAction(trigger.scrollTrigger.actions[3])
+                trigger.scrollTrigger.lerp ? trigger.anime.seek(0): triggerAction(trigger.scrollTrigger.actions[3])
             }
 
             let triggerRect = trigger.scrollTrigger.trigger.getBoundingClientRect();
@@ -166,8 +173,8 @@ export default class AnimeScrollTrigger {
             trigger.endScrollPosition = end[1];
             trigger.endTriggerOffset = triggerRect.top + triggerRect.height * this.getScrollOffsetPercentage(end[0]);
 
-            trigger.animationTriggerStartOffset = trigger.startTriggerOffset - element.clientHeight * this.getScrollOffsetPercentage(trigger.startScrollPosition);
-            trigger.animationTriggerEndOffset = trigger.endTriggerOffset - element.clientHeight * this.getScrollOffsetPercentage(trigger.endScrollPosition);
+            trigger.animationTriggerStartOffset = Math.round(trigger.startTriggerOffset - element.clientHeight * this.getScrollOffsetPercentage(trigger.startScrollPosition));
+            trigger.animationTriggerEndOffset = Math.round(trigger.endTriggerOffset - element.clientHeight * this.getScrollOffsetPercentage(trigger.endScrollPosition));
 
             if (trigger.animationTriggerStartOffset >= trigger.animationTriggerEndOffset) {
                 console.warn(`Trigger start offset of trigger - ${index} is greater than trigger end offset. This will result in no animation or incomplete animation. Please enable debug and see the offset markers.`)
@@ -200,14 +207,20 @@ export default class AnimeScrollTrigger {
                     trigger.scrollTrigger.endScrollerOffsetMarker.style.top = endScrollerOffset + 'px';
                 }
                 if (element.scrollTop >= trigger.animationTriggerStartOffset && element.scrollTop <= trigger.animationTriggerEndOffset) {
-                    if ((trigger.scrollTrigger.lerp || !trigger.isActive)) {
+                    if (trigger.scrollTrigger.lerp || !trigger.isActive) {
                         let progress = this.lerp(trigger.animationTriggerStartOffset, trigger.animationTriggerEndOffset, element.scrollTop);
-                        if (progress > 0.99 || progress < 0.09) progress = Math.round(progress);
                         isVerticalScrolling ? trigger._onEnter(trigger, progress) : trigger._onEnterBack(trigger, progress);
                     }
                     if (trigger.scrollTrigger.pin && element.scrollTop >= trigger.startTriggerOffset) {
                         let translateYDistance = element.scrollTop - trigger.startTriggerOffset;
-                        trigger.pinContainer ??= this.createPinContainer(trigger.scrollTrigger.trigger);
+                        let pinElement =  trigger.scrollTrigger.trigger;
+                        if(typeof trigger.scrollTrigger.pin === 'string'){
+                         pinElement = document.querySelector(trigger.scrollTrigger.pin);
+                        }
+                        if(typeof trigger.scrollTrigger.pin === 'object'){
+                            pinElement = trigger.scrollTrigger.pin;
+                        }
+                        trigger.pinContainer ??= this.createPinContainer(pinElement);
                         trigger.pinContainer.style.transform = `translate3d(0,${translateYDistance}px,0)`
                     }
                     trigger.isActive = true
