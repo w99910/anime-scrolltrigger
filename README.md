@@ -180,7 +180,7 @@ Example Animation Object
   Lerp ( linear interpolation) enables progressive transition of animation which means that animation state will be
   triggered based on scroll position instead of triggering at once when scroller reach trigger start offset.
 
-- #### pin: `Boolean`
+- #### pin: `Boolean` or `String` or `HTMLElement`
 
   Pinning will pin the trigger element to the top of container element. Pinning state will start when it reaches
   animation-trigger-start-offset and ends when it reaches animation-trigger-end-offset.
@@ -242,6 +242,12 @@ Example scroll trigger object is
   container.addEventListener('scroll',()=>console.log('yay scrolling'))
   ```
 - The start-intersection-trigger-offset needs to be lower than end-intersection-trigger-point offset. If it is not, animation/ triggering won't work. 
+- Incorrect trigger offsets could probably happen because of initializing trigger before dom tree hasn't completed building yet. So workaround might be setting timeout.
+  ```js
+  setTimeout(()=>{
+    new AnimeScrollTrigger(element,animations)
+  },300)
+  ```
 ## TO-DO
 
 - [x] configurable marker colors

@@ -80,14 +80,42 @@ export default class AnimeScrollTrigger {
         pinContainer.remove();
     }
 
-    constructor(element, triggers) {
+    getElement(el, defaultEl){
+        if(typeof el === "string")return document.querySelector(el);
+        if(typeof el === "object") return el;
+        return defaultEl;
+    }
+
+    getDistanceBetween(triggerElement, scrollerElement, currentViewportScrollOffset = 0){
+        // DOMRect top is relative to the parent so we need to check if element's parent is the target parent element.
+        const getTopRelativeToBody = (el, scrollTop) =>{
+            let offset = 0;
+            let margin = 0;
+            while(true){
+                offset += el.getBoundingClientRect().top + currentViewportScrollOffset - parseInt(window.getComputedStyle(el).marginTop);
+                margin += parseInt(window.getComputedStyle(el).marginTop);
+                if(!el.parentElement || el.tagName === 'body'){
+                    break;
+                }
+                el = el.parentElement;
+            }
+            return offset;
+        }
+
+        const triggerTop = getTopRelativeToBody(triggerElement, currentViewportScrollOffset);
+        const scrollerTop = getTopRelativeToBody(scrollerElement, 0);
+        return Math.abs(scrollerTop - triggerTop);
+    }
+
+    constructor(element, animations) {
         this.element = element;
-        triggers.forEach((trigger, index) => {
+        animations.forEach((trigger, index) => {
             trigger.animations = {};
             trigger.hasTriggered = false;
             trigger.isActive = false;
             trigger.scrollTrigger.actions ??= 'play none none reverse';
             trigger.scrollTrigger.actions = trigger.scrollTrigger.actions.split(' ');
+            trigger.scrollTrigger.trigger = this.getElement(trigger.scrollTrigger.trigger)
             if (trigger.scrollTrigger.actions.length < 4) {
                 throw new Error('Actions attribute should have four values. e.g, "play none none reset"');
             }
@@ -183,8 +211,8 @@ export default class AnimeScrollTrigger {
             // debug offsets
             if (trigger.scrollTrigger.debug) {
                 let markerContainer = this.markerContainer ?? this.createMarkerContainer();
-                trigger.scrollTrigger.startTriggerOffsetMarker = this.createMarker('5px', '20px', trigger.scrollTrigger.debug.startTriggerOffsetMarker ?? '#ff4949', trigger.startTriggerOffset + 'px', triggerRect.right >= element.clientWidth ? element.clientWidth - 20 : triggerRect.right + 'px');
-                trigger.scrollTrigger.endTriggerOffsetMarker = this.createMarker('5px', '20px', trigger.scrollTrigger.debug.endTriggerOffsetMarker ?? '#49deff', trigger.endTriggerOffset + 'px', triggerRect.right >= element.clientWidth ? element.clientWidth - 20 : triggerRect.right + 'px');
+                trigger.scrollTrigger.startTriggerOffsetMarker = this.createMarker('5px', '20px', trigger.scrollTrigger.debug.startTriggerOffsetMarker ?? '#ff4949', trigger.startTriggerOffset + 'px', triggerRect.right >= element.clientWidth ? Math.min(element.clientWidth, window.innerWidth) - 20 : triggerRect.right + 'px');
+                trigger.scrollTrigger.endTriggerOffsetMarker = this.createMarker('5px', '20px', trigger.scrollTrigger.debug.endTriggerOffsetMarker ?? '#49deff', trigger.endTriggerOffset + 'px', triggerRect.right >= element.clientWidth ? Math.min(element.clientWidth, window.innerWidth) - 20 : triggerRect.right + 'px');
                 markerContainer.appendChild(trigger.scrollTrigger.startTriggerOffsetMarker)
                 markerContainer.appendChild(trigger.scrollTrigger.endTriggerOffsetMarker)
                 trigger.scrollTrigger.startScrollerOffsetMarker = this.createMarker('5px', '24px', trigger.scrollTrigger.debug.startScrollerOffsetMarker ?? '#ff4949', element.clientHeight * this.getScrollOffsetPercentage(trigger.startScrollPosition) + 'px', '0px', 'absolute');
@@ -195,11 +223,11 @@ export default class AnimeScrollTrigger {
         })
         let currentScroll = 0;
         let isVerticalScrolling = false;
-        this.animations = triggers;
+        this.animations = animations;
         element.addEventListener('scroll', (e) => {
             isVerticalScrolling = element.scrollTop > currentScroll;
             currentScroll = element.scrollTop;
-            triggers.forEach((trigger) => {
+            animations.forEach((trigger) => {
                 let startScrollerOffset = element.scrollTop + element.clientHeight * this.getScrollOffsetPercentage(trigger.startScrollPosition);
                 let endScrollerOffset = element.scrollTop + element.clientHeight * this.getScrollOffsetPercentage(trigger.endScrollPosition);
                 if (trigger.scrollTrigger.debug) {
@@ -211,19 +239,18 @@ export default class AnimeScrollTrigger {
                         let progress = this.lerp(trigger.animationTriggerStartOffset, trigger.animationTriggerEndOffset, element.scrollTop);
                         isVerticalScrolling ? trigger._onEnter(trigger, progress) : trigger._onEnterBack(trigger, progress);
                     }
-                    if (trigger.scrollTrigger.pin && element.scrollTop >= trigger.startTriggerOffset) {
-                        let translateYDistance = element.scrollTop - trigger.startTriggerOffset;
-                        let pinElement =  trigger.scrollTrigger.trigger;
-                        if(typeof trigger.scrollTrigger.pin === 'string'){
-                         pinElement = document.querySelector(trigger.scrollTrigger.pin);
-                        }
-                        if(typeof trigger.scrollTrigger.pin === 'object'){
-                            pinElement = trigger.scrollTrigger.pin;
-                        }
-                        trigger.pinContainer ??= this.createPinContainer(pinElement);
-                        trigger.pinContainer.style.transform = `translate3d(0,${translateYDistance}px,0)`
+                    if (trigger.scrollTrigger.pin ) {
+                        let pinElement =  this.getElement(trigger.scrollTrigger.pin,trigger.scrollTrigger.trigger);
+                       if(!trigger.pinOffset){
+                           trigger.pinOffset = this.getDistanceBetween(pinElement, element, element.scrollTop + element.getBoundingClientRect().top);
+                       }
+                       if(element.scrollTop >= trigger.pinOffset){
+                           trigger.pinContainer ??= this.createPinContainer(pinElement);
+                           let translateYDistance = element.scrollTop - trigger.pinOffset - parseInt(window.getComputedStyle(pinElement).marginTop);
+                           trigger.pinContainer.style.transform = `translate3d(0,${translateYDistance}px,0)`
+                       }
                     }
-                    trigger.isActive = true
+                    trigger.isActive = true;
                     return;
                 }
                 if (element.scrollTop >= trigger.animationTriggerEndOffset && trigger.isActive) {
@@ -237,6 +264,7 @@ export default class AnimeScrollTrigger {
                     if (trigger.scrollTrigger.pin && trigger.pinContainer) {
                         this.removePinContainer(trigger.pinContainer)
                         trigger.pinContainer = null;
+                        trigger.pinOffset = null;
                     }
                 }
             })
