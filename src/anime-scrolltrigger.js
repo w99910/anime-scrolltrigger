@@ -47,54 +47,105 @@ export default class AnimeScrollTrigger {
         return 1 - Math.min(currentDist / distance, 1);
     }
 
+    // createPinContainer(triggerElement) {
+    //     // it is important to insert at the same position.
+    //     let pinContainer = document.createElement('div');
+    //     pinContainer.className = 'pin-container';
+    //     let style = window.getComputedStyle(triggerElement.parentElement);
+    //     Object.keys(style).forEach((attr) => {
+    //         if (!/(webkit)|(\d+)/i.test(attr)) {
+    //             pinContainer.style[attr] = style[attr];
+    //         }
+    //     })
+    //     pinContainer.style.height = triggerElement.parentElement.getBoundingClientRect().height + 'px';
+    //     pinContainer.style.width = triggerElement.parentElement.getBoundingClientRect().width + 'px';
+    //     pinContainer.style.willChange = 'transform';
+    //
+    //     if (triggerElement.parentElement.children.length > 1) {
+    //         triggerElement.insertAdjacentElement('beforebegin', pinContainer)
+    //     } else {
+    //         triggerElement.parentElement.appendChild(pinContainer)
+    //     }
+    //     pinContainer.prepend(triggerElement)
+    //     return pinContainer;
+    // }
+
     createPinContainer(triggerElement) {
-        // it is important to insert at the same position.
+        // create a pin container div and make it relative
         let pinContainer = document.createElement('div');
         pinContainer.className = 'pin-container';
-        let style = window.getComputedStyle(triggerElement);
-        Object.keys(style).forEach((attr)=>{
-            if(/[^0-9]/i.test(attr)) {
+        let style = window.getComputedStyle(triggerElement.parentElement);
+        let parentRect = triggerElement.parentElement.getBoundingClientRect();
+
+        // create a pinner div and make it absolute
+        let pinner = document.createElement('div');
+
+        Object.keys(style).forEach((attr) => {
+            if (!/(webkit)|(\d+)/i.test(attr)) {
                 pinContainer.style[attr] = style[attr];
             }
         })
-        pinContainer.style.height = triggerElement.getBoundingClientRect().height + 'px';
-        pinContainer.style.width = triggerElement.getBoundingClientRect().width + 'px';
-        pinContainer.style.willChange = 'transform';
+
+
+        pinContainer.style.height = parentRect.height + 'px';
+        pinContainer.style.width = parentRect.width + 'px';
+        pinContainer.style.position = 'relative';
+
+        pinner.style.height = triggerElement.getBoundingClientRect().height + 'px';
+        pinner.style.width = parentRect.width + 'px';
+        pinner.style.position = 'absolute';
+        pinner.style.left = triggerElement.getBoundingClientRect().left + 'px';
+        pinContainer.appendChild(pinner)
+
+        // it is important to insert at the same position and provide.
         if (triggerElement.parentElement.children.length > 1) {
             triggerElement.insertAdjacentElement('beforebegin', pinContainer)
         } else {
             triggerElement.parentElement.appendChild(pinContainer)
         }
-        pinContainer.prepend(triggerElement)
+        pinner.prepend(triggerElement)
         return pinContainer;
     }
+
+    // removePinContainer(pinContainer) {
+    //     // it is important to insert at the same position.
+    //     let parentEl = pinContainer.parentElement;
+    //     if (parentEl.children.length > 1) {
+    //         pinContainer.replaceWith(pinContainer.children[0])
+    //     } else {
+    //         parentEl.appendChild(pinContainer.children[0]);
+    //     }
+    //     pinContainer.remove();
+    // }
 
     removePinContainer(pinContainer) {
         // it is important to insert at the same position.
         let parentEl = pinContainer.parentElement;
         if (parentEl.children.length > 1) {
-            pinContainer.replaceWith(pinContainer.children[0])
+            pinContainer.replaceWith(pinContainer.children[0].children[0])
         } else {
-            parentEl.appendChild(pinContainer.children[0]);
+            parentEl.appendChild(pinContainer.children[0].children[0]);
         }
         pinContainer.remove();
     }
 
-    getElement(el, defaultEl){
-        if(typeof el === "string")return document.querySelector(el);
-        if(typeof el === "object") return el;
+    getElement(el, defaultEl) {
+        if (typeof el === "string") return document.querySelector(el);
+        if (typeof el === "object") return el;
         return defaultEl;
     }
 
-    getDistanceBetween(triggerElement, scrollerElement, currentViewportScrollOffset = 0){
+    getDistanceBetween(triggerElement, scrollerElement, currentViewportScrollOffset = 0) {
         // DOMRect top is relative to the parent so we need to check if element's parent is the target parent element.
-        const getTopRelativeToBody = (el, scrollTop) =>{
+        const getTopRelativeToBody = (el, scrollTop, debug = false) => {
             let offset = 0;
-            let margin = 0;
-            while(true){
+            let org = el;
+            while (true) {
                 offset += el.getBoundingClientRect().top + currentViewportScrollOffset - parseInt(window.getComputedStyle(el).marginTop);
-                margin += parseInt(window.getComputedStyle(el).marginTop);
-                if(!el.parentElement || el.tagName === 'body'){
+                if(debug){
+                    console.log(org,el,offset)
+                }
+                if (!el.parentElement || el.tagName === 'BODY') {
                     break;
                 }
                 el = el.parentElement;
@@ -102,9 +153,9 @@ export default class AnimeScrollTrigger {
             return offset;
         }
 
-        const triggerTop = getTopRelativeToBody(triggerElement, currentViewportScrollOffset);
+        const triggerTop = getTopRelativeToBody(triggerElement, currentViewportScrollOffset,true);
         const scrollerTop = getTopRelativeToBody(scrollerElement, 0);
-        return Math.abs(scrollerTop - triggerTop);
+         return Math.abs(scrollerTop - triggerTop);
     }
 
     constructor(element, animations) {
@@ -159,29 +210,29 @@ export default class AnimeScrollTrigger {
             }
 
             trigger._onEnter = (trigger, progress) => {
-                if (trigger.scrollTrigger.onEnter) trigger.scrollTrigger.onEnter(trigger);
-                if(trigger.scrollTrigger.onUpdate) trigger.scrollTrigger.onUpdate(trigger,progress);
+                if (trigger.scrollTrigger.onEnter && !trigger.isActive) trigger.scrollTrigger.onEnter(trigger);
+                if (trigger.scrollTrigger.onUpdate) trigger.scrollTrigger.onUpdate(trigger, progress);
                 if (!trigger.anime) return null;
                 trigger.scrollTrigger.lerp ? trigger.anime.seek(trigger.anime.duration * progress) : triggerAction(trigger.scrollTrigger.actions[0])
             }
             trigger._onLeave = (trigger, progress) => {
                 if (trigger.scrollTrigger.onLeave) trigger.scrollTrigger.onLeave(trigger);
-                if(trigger.scrollTrigger.onUpdate) trigger.scrollTrigger.onUpdate(trigger,1);
+                if (trigger.scrollTrigger.onUpdate) trigger.scrollTrigger.onUpdate(trigger, 1);
                 if (!trigger.anime) return null;
-                trigger.scrollTrigger.lerp ? trigger.anime.seek(trigger.anime.duration):  triggerAction(trigger.scrollTrigger.actions[1])
+                trigger.scrollTrigger.lerp ? trigger.anime.seek(trigger.anime.duration) : triggerAction(trigger.scrollTrigger.actions[1])
             }
 
             trigger._onEnterBack = (trigger, progress) => {
-                if (trigger.scrollTrigger.onEnterBack) trigger.scrollTrigger.onEnterBack(trigger);
-                if(trigger.scrollTrigger.onUpdate) trigger.scrollTrigger.onUpdate(trigger,progress);
+                if (trigger.scrollTrigger.onEnterBack && !trigger.isActive) trigger.scrollTrigger.onEnterBack(trigger);
+                if (trigger.scrollTrigger.onUpdate) trigger.scrollTrigger.onUpdate(trigger, progress);
                 if (!trigger.anime) return null;
                 trigger.scrollTrigger.lerp ? trigger.anime.seek(trigger.anime.duration * progress) : triggerAction(trigger.scrollTrigger.actions[2])
             }
             trigger._onLeaveBack = (trigger, progress) => {
                 if (trigger.scrollTrigger.onLeaveBack) trigger.scrollTrigger.onLeaveBack(trigger);
-                if(trigger.scrollTrigger.onUpdate) trigger.scrollTrigger.onUpdate(trigger,0);
+                if (trigger.scrollTrigger.onUpdate) trigger.scrollTrigger.onUpdate(trigger, 0);
                 if (!trigger.anime) return null;
-                trigger.scrollTrigger.lerp ? trigger.anime.seek(0): triggerAction(trigger.scrollTrigger.actions[3])
+                trigger.scrollTrigger.lerp ? trigger.anime.seek(0) : triggerAction(trigger.scrollTrigger.actions[3])
             }
 
             let triggerRect = trigger.scrollTrigger.trigger.getBoundingClientRect();
@@ -205,7 +256,7 @@ export default class AnimeScrollTrigger {
             trigger.animationTriggerEndOffset = Math.round(trigger.endTriggerOffset - element.clientHeight * this.getScrollOffsetPercentage(trigger.endScrollPosition));
 
             if (trigger.animationTriggerStartOffset >= trigger.animationTriggerEndOffset) {
-                console.warn(`Trigger start offset of trigger - ${index} is greater than trigger end offset. This will result in no animation or incomplete animation. Please enable debug and see the offset markers.`)
+                console.warn(`Start offset of trigger - ${index} is greater than trigger end offset. This will result in no animation or incomplete animation. Please enable debug and see the offset markers.`)
             }
 
             // debug offsets
@@ -239,16 +290,19 @@ export default class AnimeScrollTrigger {
                         let progress = this.lerp(trigger.animationTriggerStartOffset, trigger.animationTriggerEndOffset, element.scrollTop);
                         isVerticalScrolling ? trigger._onEnter(trigger, progress) : trigger._onEnterBack(trigger, progress);
                     }
-                    if (trigger.scrollTrigger.pin ) {
-                        let pinElement =  this.getElement(trigger.scrollTrigger.pin,trigger.scrollTrigger.trigger);
-                       if(!trigger.pinOffset){
-                           trigger.pinOffset = this.getDistanceBetween(pinElement, element, element.scrollTop + element.getBoundingClientRect().top);
-                       }
-                       if(element.scrollTop >= trigger.pinOffset){
-                           trigger.pinContainer ??= this.createPinContainer(pinElement);
-                           let translateYDistance = element.scrollTop - trigger.pinOffset - parseInt(window.getComputedStyle(pinElement).marginTop);
-                           trigger.pinContainer.style.transform = `translate3d(0,${translateYDistance}px,0)`
-                       }
+                    if (trigger.scrollTrigger.pin) {
+                        let pinElement = this.getElement(trigger.scrollTrigger.pin, trigger.scrollTrigger.trigger);
+                        if(!trigger.pinOffset){
+                            trigger.pinOffset = element.scrollTop + element.getBoundingClientRect().top + pinElement.getBoundingClientRect().top - parseInt(window.getComputedStyle(pinElement).marginTop);
+                        }
+                        if (element.scrollTop >= trigger.pinOffset) {
+                            trigger.pinContainer ??= this.createPinContainer(pinElement);
+                            let translateYDistance = element.scrollTop - trigger.pinOffset;
+                            trigger.pinContainer.children[0].style.setProperty('top', translateYDistance + 'px');
+                            // pinElement.style.transform = `translate3d(0,${translateYDistance}px,0)`
+                            // pinElement.style.webkitTransform = `translate3d(0,${translateYDistance}px,0)`
+                            // pinElement.style.mozTransform = `translate3d(0,${translateYDistance}px, 0)`
+                        }
                     }
                     trigger.isActive = true;
                     return;

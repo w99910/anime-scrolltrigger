@@ -63,6 +63,11 @@ The above values indicate that
 - animation will end when `10% of the trigger element height + top` of trigger element and `bottom end` of scroller
   meets.
 
+## Changelogs
+
+Read Changelog [here](CHANGELOG.md)
+
+
 ## Installation
 
 Use `npm`
@@ -153,11 +158,11 @@ Example Animation Object
 
 - #### start: `String`
 
-  Indicate where `startTriggerOffset` will intersect with `startScrollerOffset` and when it intersects, animation will *
+  Indicate where `startTriggerOffset` of `trigger` element will intersect with `startScrollerOffset` of `scroller` element and when it intersects, animation will *
   *start**.
   Format is `"start-trigger-offset start-scroller-offset"`.
   Default value is `"top center"`.
-  > Offset can be provided as percentage (e.g. 10%, 20%, -5%) or constant values: top, right, bottom, left.
+  > Offset can be provided as percentage (e.g. 10%, 20%, -5%) or constant values: top, center, bottom.
 
 - #### end: `String`
 
@@ -165,7 +170,7 @@ Example Animation Object
   **.  
   Format is `"end-trigger-offset end-scroller-offset"`.
   Default value is `"bottom center"`.
-  > Offset can be provided as percentage (e.g. 10%, 20%, -5%) or constant values: top, right, bottom, left.
+  > Offset can be provided as percentage (e.g. 10%, 20%, -5%) or constant values: top, center, bottom.
 
 - #### actions: `String`
 
@@ -184,6 +189,8 @@ Example Animation Object
 
   Pinning will pin the trigger element to the top of container element. Pinning state will start when it reaches
   animation-trigger-start-offset and ends when it reaches animation-trigger-end-offset.
+
+  A pinned element should exist **equal or below** `top` of the trigger element so that it will pin the element when trigger element is reached.
 
 - #### debug: `Boolean` or `Object`
 
@@ -253,3 +260,4 @@ Example scroll trigger object is
 - [x] configurable marker colors
 - [x] pin option
     - it should pin the target element to trigger element until it reaches animation-end-offset
+- [ ] test on horizontal scroll
