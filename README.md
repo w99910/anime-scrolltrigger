@@ -79,7 +79,7 @@ npm install anime-scrolltrigger
 Or `cdn`
 
 ```js
-import AnimeScrollTrigger from 'https://cdn.jsdelivr.net/npm/anime-scrolltrigger@0.0.7/dist/anime-scrolltrigger.es.js';
+import AnimeScrollTrigger from 'https://cdn.jsdelivr.net/npm/anime-scrolltrigger@{enter version e.g, 0.1.0}/dist/anime-scrolltrigger.es.js';
 ```
 
 ## Usages
