@@ -10,7 +10,7 @@
     "animate",
     "scrollanime",
     "smooth-animation",
-    "smooth-on-scroll",
+    "smooth-on-scroll"
   ],
   "scripts": {
     "dev": "vite",

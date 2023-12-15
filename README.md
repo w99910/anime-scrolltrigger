@@ -27,6 +27,10 @@ Demo codepen: [https://codepen.io/Zaw-Lin-Tun-the-encoder/pen/vYbervK](https://c
   - [Import](#import-animescrolltrigger)
   - [Init](#create-an-instance)
   - [Animation](#animation)
+  - [ScrollTrigger](#scroll-trigger)
+- [Examples](#examples)
+- [Tips And Mistakes](#tips-and-mistakes)
+- [ToDO](#to-do)
 
 ## Introduction
 
@@ -39,7 +43,7 @@ I strongly recommend you to use that library because it is awesome and maintaine
 I don’t know how exactly that library is implemented in the context of coding. I only have abstract ideas of that
 library and tried to create my own one based on those ideas.
 
-> 💡 The animation system of this library is solely dependent on [`animejs`](https://animejs.com/) library.
+> 💡 The animation system of this library is solely dependent on [`animejs`](https://animejs.com/) library. So basic hands-on knowledge of `animejs` would help you.
 
 Most of usages are similar to [`ScrollTrigger`](https://gsap.com/docs/v3/Plugins/ScrollTrigger/) . Please have a look at
 the following instructions.
@@ -199,12 +203,29 @@ Example Animation Object
   Lerp ( linear interpolation) enables progressive transition of animation which means that animation state will be
   triggered based on scroll position instead of triggering at once when scroller reach trigger start offset.
 
-- #### pin: `Boolean` or `String` or `HTMLElement`
+- #### smooth: `Boolean`
+
+  When you enable `lerp`, the default behavior is that the animation will be triggered as `linear` easing ( which means that you will not see any smoothness or easing in the animation). 
+
+  Thus, in order to make the animation `smooth`, you can enable this option.
+  Default is `false`. 
+
+  > Default easing method is `easeOutQuart` but if you provide `easing` attribute in the animation, provided `easing` will be used. 
+
+- #### pin: `Boolean` or `String` or `HTMLElement` or `Object`
 
   Pinning will pin the trigger element to the top of container element. Pinning state will start when it reaches
   animation-trigger-start-offset and ends when it reaches animation-trigger-end-offset.
 
   A pinned element should exist **equal or below** `top` of the trigger element so that it will pin the element when trigger element is reached.
+
+  If you want to provide top offset, you can provide it as an object attribute. 
+  ```js
+  pin: {
+    element: '.pin-Element',
+    top: 20,
+  }
+  ```
 
 - #### debug: `Boolean` or `Object`
 
