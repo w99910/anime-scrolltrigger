@@ -9,10 +9,24 @@
 - Pinning trigger element
 - Option for [linear interpolation](https://en.wikipedia.org/wiki/Linear_interpolation) of animation based on scroll.
   i.e, trigger animation state based on scroll
+- Smoothing animation when `lerp` is enabled. 
 - Debugging the offset markers.
 - Calculates offsets using `boundingClientRect` and `scrollTop` instead of using `Intersection Observer`.
 
 Demo codepen: [https://codepen.io/Zaw-Lin-Tun-the-encoder/pen/vYbervK](https://codepen.io/Zaw-Lin-Tun-the-encoder/pen/vYbervK)
+
+
+## Table Of Contents
+
+- [Features](#features)
+- [Introduction](#introduction)
+- [Understanding How Trigger Works](#understanding-how-trigger-works)
+- [Changelogs](#changelogs)
+- [Installation](#installation)
+- [Usages](#usages)
+  - [Import](#import-animescrolltrigger)
+  - [Init](#create-an-instance)
+  - [Animation](#animation)
 
 ## Introduction
 

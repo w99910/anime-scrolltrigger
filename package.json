@@ -1,6 +1,6 @@
 {
   "name": "anime-scrolltrigger",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Animate on scroll",
   "main": "index.js",
   "keywords": [
@@ -8,7 +8,9 @@
     "scroll trigger",
     "anime on scroll",
     "animate",
-    "scrollanime"
+    "scrollanime",
+    "smooth-animation",
+    "smooth-on-scroll",
   ],
   "scripts": {
     "dev": "vite",

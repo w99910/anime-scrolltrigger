@@ -70,12 +70,12 @@ export default class AnimeScrollTrigger {
     //     return pinContainer;
     // }
 
-    createPinContainer(triggerElement) {
+    createPinContainer(pinElement) {
         // create a pin container div and make it relative
         let pinContainer = document.createElement('div');
         pinContainer.className = 'pin-container';
-        let style = window.getComputedStyle(triggerElement.parentElement);
-        let parentRect = triggerElement.parentElement.getBoundingClientRect();
+        let style = window.getComputedStyle(pinElement.parentElement);
+        let parentRect = pinElement.parentElement.getBoundingClientRect();
 
         // create a pinner div and make it absolute
         let pinner = document.createElement('div');
@@ -91,32 +91,21 @@ export default class AnimeScrollTrigger {
         pinContainer.style.width = parentRect.width + 'px';
         pinContainer.style.position = 'relative';
 
-        pinner.style.height = triggerElement.getBoundingClientRect().height + 'px';
+        pinner.style.height = pinElement.getBoundingClientRect().height + 'px';
         pinner.style.width = parentRect.width + 'px';
         pinner.style.position = 'absolute';
-        pinner.style.left = triggerElement.getBoundingClientRect().left + 'px';
+        pinner.style.left = pinElement.getBoundingClientRect().left - parentRect.left + 'px';
         pinContainer.appendChild(pinner)
 
         // it is important to insert at the same position and provide.
-        if (triggerElement.parentElement.children.length > 1) {
-            triggerElement.insertAdjacentElement('beforebegin', pinContainer)
+        if (pinElement.parentElement.children.length > 1) {
+            pinElement.insertAdjacentElement('beforebegin', pinContainer)
         } else {
-            triggerElement.parentElement.appendChild(pinContainer)
+            pinElement.parentElement.appendChild(pinContainer)
         }
-        pinner.prepend(triggerElement)
+        pinner.prepend(pinElement)
         return pinContainer;
     }
-
-    // removePinContainer(pinContainer) {
-    //     // it is important to insert at the same position.
-    //     let parentEl = pinContainer.parentElement;
-    //     if (parentEl.children.length > 1) {
-    //         pinContainer.replaceWith(pinContainer.children[0])
-    //     } else {
-    //         parentEl.appendChild(pinContainer.children[0]);
-    //     }
-    //     pinContainer.remove();
-    // }
 
     removePinContainer(pinContainer) {
         // it is important to insert at the same position.
@@ -158,6 +147,18 @@ export default class AnimeScrollTrigger {
          return Math.abs(scrollerTop - triggerTop);
     }
 
+    getTransformValue(obj, propName, unit) {
+        // matrix(scaleX(), skewY(), skewX(), scaleY(), translateX(), translateY())
+        // matrix(   m11 a,      b,        c,   m22  d,      m41   e,       m42   f)
+        const defaultVal = stringContains(propName, 'scale') ? 1 : 0 + getTransformUnit(propName);
+        const value = getElementTransforms(el).get(propName) || defaultVal;
+        if (animatable) {
+            animatable.transforms.list.set(propName, value);
+            animatable.transforms['last'] = propName;
+        }
+        return unit ? convertPxToUnit(el, value, unit) : value;
+    }
+
     constructor(element, animations) {
         this.element = element;
         animations.forEach((trigger, index) => {
@@ -177,16 +178,63 @@ export default class AnimeScrollTrigger {
             })
             if (Object.keys(trigger.animations).length > 0) {
                 if (trigger.scrollTrigger.lerp) {
-                    trigger.animations.easing = 'linear'
+                    if(trigger.scrollTrigger.smooth){
+                        let originalTargets = trigger.targets;
+                        // determine if target are string or array
+                        if(typeof originalTargets === 'string'){
+                            originalTargets = document.querySelectorAll(originalTargets)
+                        }
+                        let newTargets = [];
+                        originalTargets.forEach((originalTarget)=>{
+                            let newTarget = originalTarget;
+                            if (typeof originalTarget === 'string'){
+                                newTarget = document.querySelector(originalTarget)
+                            }
+                            if(newTarget instanceof Element || newTarget instanceof HTMLElement){
+                                newTarget = Object.assign({}, window.getComputedStyle(originalTarget))
+                                // unflatten transform matrix
+                                let matrix = newTarget.transform;
+                                newTarget.scaleX = 0;
+                                newTarget.scaleY = 0;
+                                newTarget.skewX = 0;
+                                newTarget.skewY = 0;
+                                newTarget.translateX = 0;
+                                newTarget.translateY = 0;
+                                if(matrix !== 'none'){
+                                    // matrix(scaleX(), skewY(), skewX(), scaleY(), translateX(), translateY())
+                                    // matrix(   m11 a,      b,        c,   m22  d,      m41   e,       m42   f)
+                                    let unflattenMatrix = matrix.match(/(\d+)/g);
+                                    newTarget.scaleX = parseFloat(unflattenMatrix[0]);
+                                    newTarget.scaleY = parseFloat(unflattenMatrix[3]);
+                                    newTarget.skewX = parseFloat(unflattenMatrix[2]);
+                                    newTarget.skewY = parseFloat(unflattenMatrix[1]);
+                                    newTarget.translateX = parseFloat(unflattenMatrix[4]);
+                                    newTarget.translateY = parseFloat(unflattenMatrix[5]);
+                                }
+                            }
+                            if(!newTarget){
+                                return;
+                            }
+                            newTargets.push(newTarget)
+                        })
+                        trigger.animations.easing ??= 'easeOutQuart'
+                        trigger.fakeAnime = anime({
+                            targets: newTargets,
+                            ...trigger.animations,
+                            autoplay: false,
+                        })
+                    }else{
+                        trigger.animations.easing = 'linear'
+                    }
                 }
-                let params = {
+                trigger.anime = anime({
                     targets: trigger.targets,
                     ...trigger.animations,
                     autoplay: false,
-                };
-                trigger.anime = anime(params)
+                })
             }
 
+            let animationTimeout = null;
 
             const triggerAction = (action) => {
                 switch (action) {
@@ -213,6 +261,38 @@ export default class AnimeScrollTrigger {
                 if (trigger.scrollTrigger.onEnter && !trigger.isActive) trigger.scrollTrigger.onEnter(trigger);
                 if (trigger.scrollTrigger.onUpdate) trigger.scrollTrigger.onUpdate(trigger, progress);
                 if (!trigger.anime) return null;
+                if(trigger.fakeAnime){
+                    if(animationTimeout)clearTimeout(animationTimeout)
+                    trigger.fakeAnime.seek(trigger.fakeAnime.duration * progress)
+                    let animation = {};
+                    trigger.fakeAnime.animations.forEach((a) => {
+                        if (!animation[a.property]) {
+                            animation[a.property] = [];
+                        }
+                        if(typeof a.currentValue === 'string')a.currentValue = a.currentValue.trim();
+                        let parse = parseFloat(a.currentValue)
+                        if(parse) a.currentValue = parse;
+                        animation[a.property][a.animatable.id] = a.currentValue;
+                    })
+                    let c = {};
+                    Object.keys(animation).forEach((g)=>{
+                        c[g] = (_,index) => animation[g][index];
+                    })
+                    let params =  {
+                        targets: trigger.targets,
+                        ...c,
+                        easing: 'linear',
+                        duration: 600,
+                        autoplay: true,
+                    }
+                    animationTimeout = setTimeout(()=>{
+                        params.easing = trigger.animations.easing;
+                        params.duration = 1000;
+                        anime(params)
+                    },300)
+                    anime(params)
+                    return;
+                }
                 trigger.scrollTrigger.lerp ? trigger.anime.seek(trigger.anime.duration * progress) : triggerAction(trigger.scrollTrigger.actions[0])
             }
             trigger._onLeave = (trigger, progress) => {
@@ -226,6 +306,39 @@ export default class AnimeScrollTrigger {
                 if (trigger.scrollTrigger.onEnterBack && !trigger.isActive) trigger.scrollTrigger.onEnterBack(trigger);
                 if (trigger.scrollTrigger.onUpdate) trigger.scrollTrigger.onUpdate(trigger, progress);
                 if (!trigger.anime) return null;
+                if(trigger.fakeAnime){
+                    if(animationTimeout)clearTimeout(animationTimeout)
+                    trigger.fakeAnime.seek(trigger.fakeAnime.duration * progress)
+                    let animation = {};
+                    trigger.fakeAnime.animations.forEach((a) => {
+                        if (!animation[a.property]) {
+                            animation[a.property] = [];
+                        }
+                        if(typeof a.currentValue === 'string')a.currentValue = a.currentValue.trim();
+                        let parse = parseFloat(a.currentValue)
+                        if(parse) a.currentValue = parse;
+                        animation[a.property][a.animatable.id] = a.currentValue;
+                    })
+
+                    let c = {};
+                    Object.keys(animation).forEach((g)=>{
+                        c[g] = (_,index) => animation[g][index];
+                    })
+                    let params =  {
+                        targets: trigger.targets,
+                        ...c,
+                        easing: 'linear',
+                        duration: 600,
+                        autoplay: true,
+                    }
+                    animationTimeout = setTimeout(()=>{
+                        params.easing = trigger.animations.easing;
+                        params.duration = 1000;
+                        anime(params)
+                    },300)
+                    anime(params)
+                    return;
+                }
                 trigger.scrollTrigger.lerp ? trigger.anime.seek(trigger.anime.duration * progress) : triggerAction(trigger.scrollTrigger.actions[2])
             }
             trigger._onLeaveBack = (trigger, progress) => {
@@ -275,6 +388,8 @@ export default class AnimeScrollTrigger {
         let currentScroll = 0;
         let isVerticalScrolling = false;
         this.animations = animations;
+        let pinElement = null;
+        let topOffset = 0;
         element.addEventListener('scroll', (e) => {
             isVerticalScrolling = element.scrollTop > currentScroll;
             currentScroll = element.scrollTop;
@@ -291,17 +406,21 @@ export default class AnimeScrollTrigger {
                         isVerticalScrolling ? trigger._onEnter(trigger, progress) : trigger._onEnterBack(trigger, progress);
                     }
                     if (trigger.scrollTrigger.pin) {
-                        let pinElement = this.getElement(trigger.scrollTrigger.pin, trigger.scrollTrigger.trigger);
+                        pinElement ??= (()=>{
+                            let pinElement = trigger.scrollTrigger.pin;
+                            if(typeof trigger.scrollTrigger.pin === 'object'){
+                                if(trigger.scrollTrigger.pin.element) pinElement =  trigger.scrollTrigger.pin.element;
+                                if(trigger.scrollTrigger.pin.top) topOffset = trigger.scrollTrigger.pin.top;
+                            }
+                            return this.getElement(pinElement, trigger.scrollTrigger.trigger);
+                        })()
                         if(!trigger.pinOffset){
-                            trigger.pinOffset = element.scrollTop + element.getBoundingClientRect().top + pinElement.getBoundingClientRect().top - parseInt(window.getComputedStyle(pinElement).marginTop);
+                            trigger.pinOffset = element.scrollTop - parseInt(topOffset) + element.getBoundingClientRect().top + pinElement.getBoundingClientRect().top - parseInt(window.getComputedStyle(pinElement).marginTop);
                         }
                         if (element.scrollTop >= trigger.pinOffset) {
                             trigger.pinContainer ??= this.createPinContainer(pinElement);
                             let translateYDistance = element.scrollTop - trigger.pinOffset;
                             trigger.pinContainer.children[0].style.setProperty('top', translateYDistance + 'px');
-                            // pinElement.style.transform = `translate3d(0,${translateYDistance}px,0)`
-                            // pinElement.style.webkitTransform = `translate3d(0,${translateYDistance}px,0)`
-                            // pinElement.style.mozTransform = `translate3d(0,${translateYDistance}px, 0)`
                         }
                     }
                     trigger.isActive = true;

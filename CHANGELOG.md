@@ -1,3 +1,7 @@
+## v0.1.1
+
+- Added `smooth` feature when `lerp` the animation. 🎉🎉
+
 ## v0.1.0
 
 - fixed `enter` and `enterback` events triggering multiple times when `lerp` is enabled.
