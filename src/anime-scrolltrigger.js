@@ -191,7 +191,12 @@ export default class AnimeScrollTrigger {
                                 newTarget = document.querySelector(originalTarget)
                             }
                             if(newTarget instanceof Element || newTarget instanceof HTMLElement){
-                                newTarget = Object.assign({}, window.getComputedStyle(newTarget))
+                                let temp = {};
+                                let style = getComputedStyle(newTarget)
+                                Array.from(style).forEach((key)=>{
+                                    temp[key] = style[key];
+                                })
+                                newTarget = temp;
                                 // unflatten transform matrix
                                 let matrix = newTarget.transform;
                                 newTarget.scaleX = 0;
