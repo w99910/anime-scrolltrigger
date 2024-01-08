@@ -89,7 +89,7 @@ export default class AnimeScrollTrigger {
 
         pinContainer.style.height = parentRect.height + 'px';
         pinContainer.style.width = parentRect.width + 'px';
-        pinContainer.style.position = 'relative';
+        // pinContainer.style.position = 'relative';
 
         pinner.style.height = pinElement.getBoundingClientRect().height + 'px';
         pinner.style.width = parentRect.width + 'px';
@@ -176,7 +176,7 @@ export default class AnimeScrollTrigger {
                     trigger.animations[key] = trigger[key]
                 }
             })
-            if (Object.keys(trigger.animations).length > 0) {
+            if (trigger.targets) {
                 if (trigger.scrollTrigger.lerp) {
                     if(trigger.scrollTrigger.smooth){
                         let originalTargets = trigger.targets;
@@ -191,7 +191,7 @@ export default class AnimeScrollTrigger {
                                 newTarget = document.querySelector(originalTarget)
                             }
                             if(newTarget instanceof Element || newTarget instanceof HTMLElement){
-                                newTarget = Object.assign({}, window.getComputedStyle(originalTarget))
+                                newTarget = Object.assign({}, window.getComputedStyle(newTarget))
                                 // unflatten transform matrix
                                 let matrix = newTarget.transform;
                                 newTarget.scaleX = 0;
