@@ -47,29 +47,6 @@ export default class AnimeScrollTrigger {
         return 1 - Math.min(currentDist / distance, 1);
     }
 
-    // createPinContainer(triggerElement) {
-    //     // it is important to insert at the same position.
-    //     let pinContainer = document.createElement('div');
-    //     pinContainer.className = 'pin-container';
-    //     let style = window.getComputedStyle(triggerElement.parentElement);
-    //     Object.keys(style).forEach((attr) => {
-    //         if (!/(webkit)|(\d+)/i.test(attr)) {
-    //             pinContainer.style[attr] = style[attr];
-    //         }
-    //     })
-    //     pinContainer.style.height = triggerElement.parentElement.getBoundingClientRect().height + 'px';
-    //     pinContainer.style.width = triggerElement.parentElement.getBoundingClientRect().width + 'px';
-    //     pinContainer.style.willChange = 'transform';
-    //
-    //     if (triggerElement.parentElement.children.length > 1) {
-    //         triggerElement.insertAdjacentElement('beforebegin', pinContainer)
-    //     } else {
-    //         triggerElement.parentElement.appendChild(pinContainer)
-    //     }
-    //     pinContainer.prepend(triggerElement)
-    //     return pinContainer;
-    // }
-
     createPinContainer(pinElement) {
         // create a pin container div and make it relative
         let pinContainer = document.createElement('div');
@@ -355,7 +332,8 @@ export default class AnimeScrollTrigger {
             if (start.length < 2) {
                 throw new Error('Start must be in the format of "triggerOffset scrollOffset"')
             }
-            trigger.startTriggerOffset = triggerRect.top + triggerRect.height * this.getScrollOffsetPercentage(start[0]);
+            // it is important to take scroller scroll top offset into account.
+            trigger.startTriggerOffset = triggerRect.top + element.scrollTop + triggerRect.height * this.getScrollOffsetPercentage(start[0]);
             trigger.startScrollPosition = start[1];
             let end = trigger.scrollTrigger.end ?? 'bottom center';
             end = end.split(' ');
@@ -363,7 +341,7 @@ export default class AnimeScrollTrigger {
                 throw new Error('end must be in the format of "triggerOffset scrollOffset"')
             }
             trigger.endScrollPosition = end[1];
-            trigger.endTriggerOffset = triggerRect.top + triggerRect.height * this.getScrollOffsetPercentage(end[0]);
+            trigger.endTriggerOffset = triggerRect.top +  element.scrollTop  + triggerRect.height * this.getScrollOffsetPercentage(end[0]);
 
             trigger.animationTriggerStartOffset = Math.round(trigger.startTriggerOffset - element.clientHeight * this.getScrollOffsetPercentage(trigger.startScrollPosition));
             trigger.animationTriggerEndOffset = Math.round(trigger.endTriggerOffset - element.clientHeight * this.getScrollOffsetPercentage(trigger.endScrollPosition));
@@ -385,7 +363,7 @@ export default class AnimeScrollTrigger {
                 markerContainer.appendChild(trigger.scrollTrigger.endScrollerOffsetMarker)
             }
         })
-        let currentScroll = 0;
+        let currentScroll = element.scrollTop;
         let isVerticalScrolling = false;
         this.animations = animations;
         let pinElement = null;
